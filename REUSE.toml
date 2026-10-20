@@ -1,0 +1,11 @@
+# Licence information for files that cannot carry an SPDX header
+# (https://reuse.software/spec-3.2/). Source files carry their own headers.
+version = 1
+
+# Runtime configuration. passwd, shadow and the rate-power tables have no
+# comment syntax, and the INI files are parsed by code that keeps inline text.
+[[annotations]]
+path = ["rootfs/config/**", "apps/ai_glass_demo/common/config/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2018-2026 Guangzhou Anyka Microelectronics Co., Ltd."
+SPDX-License-Identifier = "Apache-2.0"

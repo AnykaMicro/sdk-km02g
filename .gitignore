@@ -1,0 +1,23 @@
+# Build outputs
+*.o
+apps/ai_glass_demo/ai_glass_demo
+rootfs/ai_glass_demo
+rootfs/ramfs/
+rootfs/ramfs.cpio
+rootfs/ramfs.cpio.lz4
+tools/ota/update.bin
+tools/ota/ramfs.img
+tools/ota/usr.jffs2
+tools/ota/part1.bin
+rootfs/config/*.tmp
+rootfs/config/*.bak
+tests/list_test
+tests/uvc_test
+
+# Your own settings and secrets (root password hash, debug AP passphrase): never commit them
+rootfs/config.local/
+
+# GitHub Release assets: download them, never commit them
+rootfs/ramfs.img
+tools/riscv64-anyka-linux-musl.tar.gz
+tools/riscv64-anyka-linux-musl.tar.gz.part

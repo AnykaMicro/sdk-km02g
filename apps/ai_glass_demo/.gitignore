@@ -1,0 +1,9 @@
+*.so
+*.a
+*.ko
+*.o
+libAV200Platform/
+ai_glass_demo
+libLiveStreamCode/video_chat_sample
+libTakePhotoCode/take_photos_sample
+libVideoRecordCode/video_record_sample

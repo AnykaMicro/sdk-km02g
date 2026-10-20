@@ -1,0 +1,9 @@
+# Text files are stored with LF line endings; the prebuilt libraries and images are binary
+* text=auto eol=lf
+*.a binary
+*.so binary
+*.img binary
+*.jffs2 binary
+*.bin binary
+*.png binary
+*.jpg binary

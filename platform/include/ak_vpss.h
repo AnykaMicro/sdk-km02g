@@ -1,0 +1,280 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd. */
+#ifndef _AK_VPSS_H_
+#define _AK_VPSS_H_
+
+#include "ak_types.h"
+#include "ak_common.h"
+#include "ak_common_video.h"
+#include "ak_vi.h"
+#include "ak_vpss_isp.h"
+
+#define MAX_STITCH_CHN_NUM      (4)
+#define VPSS_GRP_MAX            (5)
+#define MAX_CFG_PATH_LEN        (256)
+#define VPSS_MIN_CHN_NUM        (0)
+#define VPSS_MAX_CHN_NUM        (3)
+#define VPSS_FRAME_DEP_MIN      (1)
+#define VPSS_FRAME_DEP_MAX      (8)
+#define MAX_GRP_WIDTH           (3840)
+#define MAX_GRP_HEIGHT          (3840)
+
+/*
+ * error code.
+ */
+typedef enum akVPSS_ERROR_NO_E {
+    ERROR_VPSS_INVALID_GRPID					= ( MODULE_ID_VPSS << 24 ) + 0,
+    ERROR_VPSS_GRPID_NO_FOUND					= ( MODULE_ID_VPSS << 24 ) + 1,
+    ERROR_VPSS_GRP_CREATE_FAIL                  = ( MODULE_ID_VPSS << 24 ) + 2,
+    ERROR_VPSS_GRP_CREATED_YET                  = ( MODULE_ID_VPSS << 24 ) + 3,
+    ERROR_VPSS_NO_WORK                          = ( MODULE_ID_VPSS << 24 ) + 4,
+    ERROR_VPSS_GRP_NOT_DISABLE                  = ( MODULE_ID_VPSS << 24 ) + 5,
+    ERROR_VPSS_GRP_NOT_ENABLE                   = ( MODULE_ID_VPSS << 24 ) + 6,
+    ERROR_VPSS_GRP_ENABLE_YET                   = ( MODULE_ID_VPSS << 24 ) + 7,
+    ERROR_VPSS_CHN_NOT_ENABLE                   = ( MODULE_ID_VPSS << 24 ) + 8,
+    ERROR_VPSS_CHN_ENABLE_YET                   = ( MODULE_ID_VPSS << 24 ) + 9,
+    ERROR_VPSS_CHN_REGISTER_FAIL                = ( MODULE_ID_VPSS << 24 ) + 10,
+    ERROR_VPSS_CHNID_NO_FOUND                   = ( MODULE_ID_VPSS << 24 ) + 11,
+    ERROR_VPSS_CHN_SET_BUF_FAIL                 = ( MODULE_ID_VPSS << 24 ) + 12,
+    ERROR_VPSS_CHN_ALLLOC_BUF_FAIL              = ( MODULE_ID_VPSS << 24 ) + 13,
+    ERROR_VPSS_CHN_SET_QBUF_FAIL                = ( MODULE_ID_VPSS << 24 ) + 14,
+    ERROR_VPSS_BIND_CHN                         = ( MODULE_ID_VPSS << 24 ) + 15,
+    ERROR_VPSS_GET_PAD_ID                       = ( MODULE_ID_VPSS << 24 ) + 16,
+    ERROR_VPSS_ISP_DEV_OPEN                     = ( MODULE_ID_VPSS << 24 ) + 17,
+    ERROR_VPSS_CHN_OPEN                         = ( MODULE_ID_VPSS << 24 ) + 18,
+    ERROR_VPSS_CHN_NO_OPEN                      = ( MODULE_ID_VPSS << 24 ) + 19,
+    ERROR_VPSS_SENSOR_ID                        = ( MODULE_ID_VPSS << 24 ) + 20,
+    ERROR_VPSS_EXP_NOT_STABLE                   = ( MODULE_ID_VPSS << 24 ) + 21,
+}VPSS_ERROR_NO_E;
+
+/*
+ * channel mode.
+ */
+typedef enum akVPSS_CHN_MODE_E
+{
+    VPSS_CHN_FRAME_MODE,  //frame mode is normal mode.
+    VPSS_CHN_SLICE_MODE,  //slice mode for saving dma memory, just user in venc kernel-kernel mode.
+    VPSS_CHN_MODE_TOTAL
+}VPSS_CHN_MODE_E;
+
+typedef enum akVPSS_STITCH_MODE_E
+{
+    VPSS_STITCH_VERTICAL_MODE,		//stitch dual sensor can use slice mode.
+    VPSS_STITCH_HORIZONTAL_MODE,	//stitch dual sensor can not use slice mode.
+    VPSS_STITCH_MODE_TOTAL
+}VPSS_STITCH_MODE_E;
+
+typedef enum akVPSS_WORK_MODE_E
+{
+    VPSS_WORK_USER,					//Receive memory input, i.e., user space data input through AK_MPI_VPSS_SendFrame
+    VPSS_WORK_AUTO,					//Normal mode, data input from sensor.
+    VPSS_WORK_TOTAL
+}VPSS_WORK_MODE_E;
+
+typedef struct akVPSS_GRP_ATTR_S
+{
+    AK_U32				    u32Width;
+    AK_U32				    u32Height;
+    AK_U8				    pu8IspCfgPath[MAX_CFG_PATH_LEN];
+    AK_S32                  s32AttachSensorId;
+    PIXEL_FORMAT_E 	        enInputPixFmt;
+    VPSS_WORK_MODE_E        enWorkMode;
+    ISP_DAY_NIGHT_MODE_E    enLoadMode;
+    AK_BOOL				    bEnGrpBypass;
+    AK_BOOL				    bMirror;
+    AK_BOOL				    bFlip;
+}VPSS_GRP_ATTR_S;
+
+typedef struct akVPSS_CHN_ATTR_S
+{
+    AK_U32				u32Width;
+    AK_U32				u32Height;
+    AK_U32              u32MaxBufSize;
+    CROP_INFO_S			stCropInfo;
+    PIXEL_FORMAT_E 	    enOutputPixFmt;
+    VPSS_CHN_MODE_E	    enChnMode;
+    AK_U32				u32FrameDepth;
+    AK_S32				s32Fps;
+}VPSS_CHN_ATTR_S;
+
+typedef struct akVPSS_STITCH_CHN_S
+{
+    AK_S32					s32VpssGrp;
+    AK_S32					s32VpssChn;
+}VPSS_STITCH_CHN_S;
+
+typedef struct akVPSS_STITCH_ATTR_S
+{
+    VPSS_STITCH_MODE_E	enStitchmode;
+    AK_U32					u32StitchChnNum;
+    VPSS_STITCH_CHN_S		astStitchChn[MAX_STITCH_CHN_NUM];
+}VPSS_STITCH_ATTR_S;
+
+typedef struct akVPSS_FRAME_INFO_S
+{
+    FRAME_S				stFrame;
+    AK_U64				u64PhyAddr;
+    PIXEL_FORMAT_E 	    enOutputPixFmt;
+    AK_VOID				*pvMdInfo;
+}VPSS_FRAME_INFO_S;
+
+/**
+ *@brief AK_MPI_VPSS_GetVersion : get vpss version .
+ *@param
+ *@return pstr, NULL failed.
+ *@note
+*/
+const AK_CHAR *AK_MPI_VPSS_GetVersion(void);
+
+/**
+ *@brief AK_MPI_VPSS_GetConfVersion get ispconf version
+ *@param s32VpssGrp[IN] : vpss group id.
+ *@return pstr, NULL failed.
+ *@note
+*/
+const AK_CHAR *AK_MPI_VPSS_GetConfVersion(AK_S32 s32VpssGrp);
+
+/**
+ *@brief AK_MPI_VPSS_CreateGrp : start vpss group .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param pstVpssGrpAttr[IN] : vpss group attribution.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_CreateGrp(AK_S32 s32VpssGrp, const VPSS_GRP_ATTR_S *pstVpssGrpAttr);
+/**
+ *@brief AK_MPI_VPSS_StartGrp : start vpss group .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_StartGrp(AK_S32 s32VpssGrp);
+/**
+ *@brief AK_MPI_VPSS_SetGrpAttr : set vpss group attribution .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param pstVpssGrpAttr[OUT] : vpss group attribution.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_SetGrpAttr(AK_S32 s32VpssGrp, const VPSS_GRP_ATTR_S *pstVpssGrpAttr);
+/**
+ *@brief AK_MPI_VPSS_GetChnAttr : get vpss chn attribution .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param u32VpssChn[IN] : Channel id
+ *@param pstVpssChnAttr[OUT] : vpss chn attribution.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_GetChnAttr(AK_S32 s32VpssGrp, AK_S32 s32ChnId, VPSS_CHN_ATTR_S *pstVpssChnAttr);
+/**
+ *@brief AK_MPI_VPSS_StopGrp : stop vpss group .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_StopGrp(AK_S32 s32VpssGrp);
+/**
+ *@brief AK_MPI_VPSS_SetChnAttr : set chn attribution .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : Channel id
+ *@param pstVpssChnAttr[IN] : vpss chn attribution.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_SetChnAttr(AK_S32 s32VpssGrp, AK_S32 s32ChnId, const VPSS_CHN_ATTR_S *pstVpssChnAttr);
+/**
+ *@brief AK_MPI_VPSS_GetGrpAttr : get vpss group attribution .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param pstVpssGrpAttr[OUT] : vpss group attribution.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_GetGrpAttr(AK_S32 s32VpssGrp, VPSS_GRP_ATTR_S *pstVpssGrpAttr);
+/**
+ *@brief AK_MPI_VPSS_EnableChn : enable chn .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : Channel id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_EnableChn(AK_S32 s32VpssGrp, AK_S32 s32ChnId);
+/**
+ *@brief AK_MPI_VPSS_DisableChn : disable chn .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : Channel id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_DisableChn(AK_S32 s32VpssGrp, AK_S32 s32ChnId);
+/**
+ *@brief AK_MPI_VPSS_GetFrame : get frame .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : Channel id
+ *@param pstFrameInfo[OUT] : frame data.
+ *@param s32MilliSec[IN] : timeout
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_GetFrame(AK_S32 s32VpssGrp, AK_S32 s32ChnId, VPSS_FRAME_INFO_S *pstFrameInfo, AK_S32 s32MilliSec);
+/**
+ *@brief AK_MPI_VPSS_ReleaseFrame : release frame .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : Channel id
+ *@param pstFrameInfo[OUT] : frame data.
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_ReleaseFrame(AK_S32 s32VpssGrp, AK_S32 s32ChnId, VPSS_FRAME_INFO_S *pstFrameInfo);
+/**
+ *@brief AK_MPI_VPSS_BindChn : bind chn .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32LinkChnId[IN] : vi chn id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_BindChn( AK_S32 s32VpssGrp, AK_S32 s32LinkChnId);
+/**
+ *@brief AK_MPI_VPSS_DestroyGrp : destroy group .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_DestroyGrp(AK_S32 s32VpssGrp);
+/**
+ *@brief AK_MPI_VPSS_GetGrpFrame : get group raw data .
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param pstFrameInfo[OUT] : raw data
+ *@param s32MilliSec[IN] : timeout
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_GetGrpFrame(AK_S32 s32VpssGrp, VPSS_FRAME_INFO_S *pstFrameInfo, AK_S32 s32MilliSec);
+/**
+ *@brief AK_MPI_VPSS_ReleaseGrpFrame : release group raw data.
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param pstFrameInfo[OUT] : raw data
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_ReleaseGrpFrame(AK_S32 s32VpssGrp, VPSS_FRAME_INFO_S *pstFrameInfo);
+/**
+ *@brief AK_MPI_VPSS_SetStitchChn : set stitch chn.
+ *@param s32VpssGrp[IN] : vpss group id
+ *@param s32ChnId[IN] : vpss chn id
+ *@param pstVpssStitchAttr[IN] : stitch attr
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_MPI_VPSS_SetStitchChn(AK_S32 s32VpssGrp, AK_S32 s32ChnId, const VPSS_STITCH_ATTR_S *pstVpssStitchAttr);
+
+/**
+ *@brief AK_Vpss_Isp_Set_AwbParamAccess : allow or not.
+ *@param allow[IN] : 0: disable; 1:enable
+ *@return 0 success, others failed.
+ *@note
+*/
+AK_S32 AK_Vpss_Isp_Set_AwbParamAccess(AK_S32 allow);
+
+#endif
+
+/* end of file */
