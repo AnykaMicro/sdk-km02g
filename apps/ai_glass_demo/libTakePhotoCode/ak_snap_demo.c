@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd. */
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -551,11 +552,11 @@ DROP_FRAME_WHILE:
 
                 set_glass_info_v4(BT_CMD_PHOTO, (char *)glass_info_param, glass_info_param_len);
             }
-            printf("get vpss frame ok (framet=%lld,syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("get vpss frame ok (framet=%" PRIu64 ",syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
 		}
         if(frame_count <= JPG_DROP_FRAME_NUM)
         {
-            printf("frame_count:%d <= %d, drop it(framet=%lld,syst=%lld) \n",frame_count,JPG_DROP_FRAME_NUM, vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("frame_count:%d <= %d, drop it(framet=%" PRIu64 ",syst=%lld) \n",frame_count,JPG_DROP_FRAME_NUM, vpss_frame.stFrame.u64Ts, get_sys_run_time64());
             AK_MPI_VPSS_ReleaseFrame(0, 0, &vpss_frame);
             goto DROP_FRAME_WHILE;
         }
@@ -565,7 +566,7 @@ DROP_FRAME_WHILE:
 		ensure_directory_exists(photo_save_path);
 		//int result = 0;
 		//set_glass_info_v4(glass_fd, CMD_PHOTO,(char *)&result,sizeof(int));
-		//printf("get vpss frame ok (framet=%lld,syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+		//printf("get vpss frame ok (framet=%" PRIu64 ",syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
 
         VIDEO_STREAM_S *stStream = AK_BASE_MemAlloc(MODULE_ID_APP, sizeof(VIDEO_STREAM_S));
         memset(stStream,0,sizeof(VIDEO_STREAM_S));
@@ -649,7 +650,7 @@ DROP_FRAME_WHILE:
 
         if(gm_config.photo_param.main_org_width != gm_config.photo_param.main_res_width || gm_config.photo_param.main_org_height != gm_config.photo_param.main_res_height)
         {
-            printf("silce jpg mode frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("silce jpg mode frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
             // JPG slice encoding scaling
             stIpuDmaSrc.pvAddr = vpss_frame.stFrame.pu8Data;
             stIpuDmaSrc.u32Len = gm_config.photo_param.main_org_width*gm_config.photo_param.main_org_height*3/2;//vpss_frame.stFrame.u32Len;
@@ -700,7 +701,7 @@ DROP_FRAME_WHILE:
         else
         {
             // Full frame encoding
-            printf("frame jpg mode frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("frame jpg mode frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
             s32Ret = AK_MPI_VENC_EncodeFrame(0,vpss_frame.stFrame.pu8Data,gm_config.photo_param.main_org_width*gm_config.photo_param.main_org_height*3/2, NULL, stStream);
             if(!s32Ret && stStream->u32Len > 0)
             {
@@ -721,7 +722,7 @@ DROP_FRAME_WHILE:
             }
         }
 
-        printf("enc write ok frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+        printf("enc write ok frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
 
         AK_MPI_VPSS_ReleaseFrame(0, 0, &vpss_frame);
         AK_MPI_VENC_SetExifEnable(0, AK_FALSE);
@@ -781,21 +782,21 @@ int ak_snap_env_init(char *isp_conf_path, int i_fps, int i_frame_depth)
     ret = init_vi(0, isp_conf_path);
     if(ret != 0)
     {
-        printf("init_vi failed! ret:%d\n");
+        printf("init_vi failed! ret:%d\n", ret);
         return ret;
     }
 
     ret = start_vi(0);
     if(ret != 0)
     {
-        printf("start_vi failed! ret:%d\n");
+        printf("start_vi failed! ret:%d\n", ret);
         return ret;
     }
 
     ret = init_venc(0);
     if(ret != 0)
     {
-        printf("init_venc failed! ret:%d\n");
+        printf("init_venc failed! ret:%d\n", ret);
         return ret;
     }
 
@@ -805,7 +806,7 @@ int ak_snap_env_init(char *isp_conf_path, int i_fps, int i_frame_depth)
         ret = init_ipu();
         if(ret != 0)
         {
-            printf("init_ipu failed! ret:%d\n");
+            printf("init_ipu failed! ret:%d\n", ret);
             return ret;
         }
     }
@@ -824,7 +825,7 @@ int ak_snap_env_destory()
         ret = destory_ipu();
         if(ret != 0)
         {
-            printf("destory_ipu failed! ret:%d\n");
+            printf("destory_ipu failed! ret:%d\n", ret);
             return ret;
         }
     }
@@ -832,14 +833,14 @@ int ak_snap_env_destory()
     ret = destory_venc(0);
     if(ret != 0)
     {
-        printf("destory_venc failed! ret:%d\n");
+        printf("destory_venc failed! ret:%d\n", ret);
         return ret;
     }
 
     ret = stop_and_destory_vi(0);
     if(ret != 0)
     {
-        printf("stop_and_destory_vi failed! ret:%d\n");
+        printf("stop_and_destory_vi failed! ret:%d\n", ret);
         return ret;
     }
 
@@ -873,7 +874,7 @@ int get_jpeg_frame_cb(int nHandle, fw_frame_info *pframe, void* pDataCbUser)
         frame_count++;
 		if(frame_count == 1)
 		{
-			printf("get vpss frame ok (framet=%lld,syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+			printf("get vpss frame ok (framet=%" PRIu64 ",syst=%lld) \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
 		}
 
         //VIDEO_STREAM_S *stStream = AK_BASE_MemAlloc(MODULE_ID_APP, sizeof(VIDEO_STREAM_S));
@@ -884,7 +885,7 @@ int get_jpeg_frame_cb(int nHandle, fw_frame_info *pframe, void* pDataCbUser)
         if(gm_config.photo_param.main_org_width != gm_config.photo_param.main_res_width ||
 			gm_config.photo_param.main_org_height != gm_config.photo_param.main_res_height)
         {
-            printf("silce jpg mode frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("silce jpg mode frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
             // JPG slice encoding scaling
             stIpuDmaSrc.pvAddr = vpss_frame.stFrame.pu8Data;
             stIpuDmaSrc.u32Len = gm_config.photo_param.main_org_width*gm_config.photo_param.main_org_height*3/2;//vpss_frame.stFrame.u32Len;
@@ -932,7 +933,7 @@ int get_jpeg_frame_cb(int nHandle, fw_frame_info *pframe, void* pDataCbUser)
         else
         {
             // Full frame encoding
-            printf("frame jpg mode frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+            printf("frame jpg mode frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
             s32Ret = AK_MPI_VENC_EncodeFrame(0,vpss_frame.stFrame.pu8Data,gm_config.photo_param.main_org_width*gm_config.photo_param.main_org_height*3/2, NULL, &stStream);
             if(!s32Ret && stStream.u32Len > 0)
             {
@@ -949,7 +950,7 @@ int get_jpeg_frame_cb(int nHandle, fw_frame_info *pframe, void* pDataCbUser)
         }
 
 		AK_MPI_VPSS_ReleaseFrame(0, 0, &vpss_frame);
-        printf("enc write ok frametime=%lld syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
+        printf("enc write ok frametime=%" PRIu64 " syst=%lld \n", vpss_frame.stFrame.u64Ts, get_sys_run_time64());
 	    //AK_MPI_VENC_SetExifEnable(0, AK_FALSE);
     }
     else

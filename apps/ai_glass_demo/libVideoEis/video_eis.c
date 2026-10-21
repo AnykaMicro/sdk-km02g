@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd. */
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -429,7 +430,7 @@ static void* run_eis_process(void* arg)
 		static int vno = 0;
         if(vno++ == 0)
         {
-            printf("%s_%d vno=%lld",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
+            printf("%s_%d vno=%" PRIu64 "",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
         }
 
         // Check current available gyro data amount
@@ -627,8 +628,8 @@ static void* run_crop_eis_process(void* arg)
         ret = AK_MPI_IPU_EndQue( 0, AK_TRUE, AK_TRUE );
         if(ret == AK_FAILED)
         {
-            AK_MPI_IPU_Reset();printf("%s_%d vno=%lld \n",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
-            IPU_Dma_Free(&crop_params.stIpuDmaTrans);printf("%s_%d vno=%lld \n",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
+            AK_MPI_IPU_Reset();printf("%s_%d vno=%" PRIu64 " \n",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
+            IPU_Dma_Free(&crop_params.stIpuDmaTrans);printf("%s_%d vno=%" PRIu64 " \n",__FUNCTION__, __LINE__, frame.stFrame.u64Ts);
             AK_MPI_VPSS_ReleaseFrame(g_vpss_grp, g_vpss_chn, &frame);
             continue;
         }

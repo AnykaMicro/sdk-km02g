@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd. */
 #include <stdio.h>
+#include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
 #include <getopt.h>
@@ -482,7 +483,7 @@ static void save_mux_file(struct dvr_conf *p_dvr_conf) // Save recording file
         break;
     case MUX_TYPE_AVI:
 		if(gm_config.record_param.eis_enable == 1)
-	snprintf(ac_file, sizeof(ac_file), "%%s", ac_template_file, FILE_EXT_AVI);
+	snprintf(ac_file, sizeof(ac_file), "%s%s", ac_template_file, FILE_EXT_AVI);
 		else
 			snprintf(ac_file, sizeof(ac_file), "%s_origin%s", ac_template_file, FILE_EXT_AVI);
         break;
@@ -632,7 +633,7 @@ static void *thread_ai(void *pv_conf)
         {
             static int ai = 0;
             if(ai++ == 0)
-                printf("%s_%d ait=%lld",__FUNCTION__, __LINE__, p_frame_entry->frame_stream.u64Ts);
+                printf("%s_%d ait=%" PRIu64 "",__FUNCTION__, __LINE__, p_frame_entry->frame_stream.u64Ts);
             // Try to push to lock-free queue
             if (lockfree_ai_push(&p_dvr_conf->lockfree_ai_buffer, p_frame_entry) != 0) {
                 // Queue full, release data
@@ -911,7 +912,7 @@ static void *thread_vi_venc(void *pv_conf) // Video VENC acquisition thread
 //					fclose(fdt);
                 last_frame_ms = vpss_frame_get.stFrame.u64Ts;
 
-				printf("%s_%d vit=%llu \n",__FUNCTION__, __LINE__, vpss_frame_get.stFrame.u64Ts);
+				printf("%s_%d vit=%" PRIu64 " \n",__FUNCTION__, __LINE__, vpss_frame_get.stFrame.u64Ts);
             }
 
             vpss_frame_mark = vpss_frame_get;                                                            // Record ts and seq_no
@@ -1206,7 +1207,7 @@ static void *thread_mux(void *pv_conf) // Video muxing thread (optimized using l
                 // Manually stop recording
                 if ((p_dvr_conf->c_mux_manual_stop_flag == AK_TRUE))
                 {
-					 printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+					 printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                     p_dvr_conf->i_record_ms = stream_head.stream.u64Ts - i_ts_start; // Get recording duration (ms)
                     // Add audio data before this timestamp before stopping recording
                     add_aenc_less_than_ts(p_dvr_conf, stream_head.stream.u64Ts);
@@ -1220,7 +1221,7 @@ static void *thread_mux(void *pv_conf) // Video muxing thread (optimized using l
                     p_dvr_conf->c_mux_enable = AK_FALSE;
                     p_dvr_conf->c_mux_manual_stop_flag = AK_FALSE;
                     gc_run = AK_FALSE;
-					printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+					printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                 }
 
                 // Judge whether recording has started, whether recording duration needs to be truncated and start new recording, whether error occurred during recording
@@ -1233,16 +1234,16 @@ static void *thread_mux(void *pv_conf) // Video muxing thread (optimized using l
                     {
                         p_dvr_conf->i_record_ms = stream_head.stream.u64Ts - i_ts_start; // Get recording duration (ms)
                         // Add audio data before this timestamp before stopping recording
-                        printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+                        printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                         add_aenc_less_than_ts(p_dvr_conf, stream_head.stream.u64Ts);
-						printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+						printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                         saving_flag = AK_TRUE;
                         AK_MPI_MUX_Stop(p_dvr_conf->s32MuxHandle); // Stop current recording
-                        printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+                        printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                         //sync();
                         system("(sync;echo 3 > /proc/sys/vm/drop_caches;)&");
                         save_mux_file(p_dvr_conf); // Save current recording file
-                        printf("sssssssss l=%d t=%d \n", __LINE__, get_sys_run_time64());
+                        printf("sssssssss l=%d t=%lld \n", __LINE__, get_sys_run_time64());
                         i_num_file++;
                         p_dvr_conf->c_mux_init = AK_FALSE;
                         p_dvr_conf->c_mux_enable = AK_FALSE;

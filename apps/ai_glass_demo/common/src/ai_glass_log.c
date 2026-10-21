@@ -70,9 +70,9 @@ static char* get_timestamp(char *buffer, size_t size)
 
     // Format: [HH:MM:SS.mmm]
     snprintf(buffer, size, "[%02d:%02d:%02d.%03ld]",
-             ts.tv_sec / 3600 % 24,
-             ts.tv_sec / 60 % 60,
-             ts.tv_sec % 60,
+             (int)(ts.tv_sec / 3600 % 24),
+             (int)(ts.tv_sec / 60 % 60),
+             (int)(ts.tv_sec % 60),
              ts.tv_nsec / 1000000);
 
     return buffer;

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd. */
 #include <stdio.h>
+#include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
@@ -481,7 +482,7 @@ static int venc_param_set(VENC_ATTR_S *pstVencAttrs,
 int rtsp_ini_param(char *isp_conf_path)
 {
     // ISP CONF
-    snprintf(rtsp_param.isp_conf, sizeof(rtsp_param.isp_conf), isp_conf_path);
+    snprintf(rtsp_param.isp_conf, sizeof(rtsp_param.isp_conf), "%s", isp_conf_path);
 
     // Video CHN0
     venc_param_set(&rtsp_param.venc_info[0].stChnAttrs.stVencAttrs,
@@ -1062,7 +1063,7 @@ static AK_VOID *VencStreamThread(AK_VOID *pvArg)
         static int vi = 0;
         if(vi++== 0)
         {
-			printf("%s_%d vit=%lld",__FUNCTION__, __LINE__, vpss_frame.stFrame.u64Ts);
+			printf("%s_%d vit=%" PRIu64 "",__FUNCTION__, __LINE__, vpss_frame.stFrame.u64Ts);
         }
 
         ret = AK_MPI_VENC_EncodeFrame(venc_handle_id, vpss_frame.stFrame.pu8Data,    \
@@ -1072,7 +1073,7 @@ static AK_VOID *VencStreamThread(AK_VOID *pvArg)
         if(ret == AK_SUCCESS) {
             if(pstStream->enFrameType ==FRAME_TYPE_I)
             {
-                printf("---venc%d_th Get Stream! type:%s len:%8u ts:%8llu\n",
+                printf("---venc%d_th Get Stream! type:%s len:%8u ts:%8" PRIu64 "\n",
                             venc_handle_id,
                             pstStream->enFrameType==FRAME_TYPE_P?"P":
                             pstStream->enFrameType==FRAME_TYPE_I?"I":"P",
