@@ -50,20 +50,37 @@ if [ -d config.local ]; then
     echo "Using your files from rootfs/config.local/: $(ls config.local | tr '\n' ' ')"
 fi
 
-if grep -q '^root::' "$STAGE/shadow"; then
-    echo "Error: root has an empty password, so anyone on the serial console gets root." >&2
-    echo "Put a shadow file with a password hash in rootfs/config.local/ (see README)." >&2
-    exit 1
-fi
-if grep -q '^root:[*!]' "$STAGE/shadow"; then
-    if [ "${ALLOW_LOCKED_ROOT:-0}" != 1 ]; then
-        echo "Error: root has no password, so the device would have no console login." >&2
-        echo "Put a shadow file with a password hash in rootfs/config.local/ (see README)," >&2
-        echo "or build with ALLOW_LOCKED_ROOT=1 to accept a locked root." >&2
+# Root login gate. Decide positively: both files must be well formed, passwd must
+# defer to shadow ('x'), and only a crypt hash in shadow passes on its own.
+for f in passwd shadow; do
+    if grep -q "$(printf '\r')" "$STAGE/$f"; then
+        echo "Error: $f has CR line endings; the device would not read it as intended." >&2
         exit 1
     fi
-    echo "Note: ALLOW_LOCKED_ROOT=1, so root login is disabled in this image." >&2
+    if [ "$(grep -c '^root:' "$STAGE/$f")" != 1 ]; then
+        echo "Error: $f must have exactly one root line." >&2
+        exit 1
+    fi
+done
+if [ "$(awk -F: '$1=="root"{print $2}' "$STAGE/passwd")" != x ]; then
+    echo "Error: root's password field in passwd must be 'x' so that shadow is used." >&2
+    exit 1
 fi
+case "$(awk -F: '$1=="root"{print $2}' "$STAGE/shadow")" in
+    '$'?*'$'?*'$'?*) ;;  # crypt hash: $id$salt$hash, e.g. from openssl passwd -6
+    '')
+        echo "Error: root has an empty password, so anyone on the serial console gets root." >&2
+        echo "Put a shadow file with a password hash in rootfs/config.local/ (see README)." >&2
+        exit 1 ;;
+    *)
+        if [ "${ALLOW_LOCKED_ROOT:-0}" != 1 ]; then
+            echo "Error: root's shadow field is not a password hash, so the device would have no console login." >&2
+            echo "Put a shadow file with a password hash in rootfs/config.local/ (see README)," >&2
+            echo "or build with ALLOW_LOCKED_ROOT=1 to accept a locked root." >&2
+            exit 1
+        fi
+        echo "Note: ALLOW_LOCKED_ROOT=1, so root login is disabled in this image." >&2 ;;
+esac
 
 # /etc/shadow on the device comes from here; only root may read it
 chmod 600 "$STAGE/shadow"
