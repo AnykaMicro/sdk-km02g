@@ -1053,17 +1053,19 @@ void handle_wifi_sta_connect(const quick_glass_info_t *glass_info)
     ak_glass_wifi_ap_t *wifi_sta = (ak_glass_wifi_ap_t *)glass_info->parameter;
 
     log_info_app("CMD_WIFI_STA_CONNECT STA ssid:%s\n", wifi_sta->ap_ssid);
-    set_wifi_sta_conf(wifi_sta->ap_ssid, wifi_sta->ap_password);
-    result = start_sta();
-
+    if (set_wifi_sta_conf(wifi_sta->ap_ssid, wifi_sta->ap_password) != 0) {
+        result = RETURN_CODE_PARAM_INVALID; // rejected credentials: do not start with the stored config
+    } else {
+        result = start_sta();
 #ifdef RTSP_SUPPORT_ENABLE
-    if(result == 0){
-        start_rtsp_live_stream();
-    }else{
-        result = RETURN_CODE_DEVICE_BUSY;
-        log_error_app("result(%d) error! rtsp no run\n",result);
-    }
+        if(result == 0){
+            start_rtsp_live_stream();
+        }else{
+            result = RETURN_CODE_DEVICE_BUSY;
+            log_error_app("result(%d) error! rtsp no run\n",result);
+        }
 #endif
+    }
 
     memset(glass_info_param, 0, sizeof(glass_info_param));
     glass_info_param_len = ai_glass_info_pack_data(result, glass_info_param, NULL, 0);
@@ -1309,17 +1311,19 @@ void handle_wifi_ap_mode(const quick_glass_info_t *glass_info)
     log_info_app("handle_wifi_ap_mode\n");
     ak_glass_wifi_ap_t *wifi_ap = (ak_glass_wifi_ap_t *)glass_info->parameter;
     log_info_app("AP ssid:%s\n", wifi_ap->ap_ssid);
-    set_wifi_ap_conf(wifi_ap->ap_ssid, wifi_ap->ap_password);
-    result = start_ap();
-
+    if (set_wifi_ap_conf(wifi_ap->ap_ssid, wifi_ap->ap_password) != 0) {
+        result = RETURN_CODE_PARAM_INVALID; // rejected credentials: do not start with the stored config
+    } else {
+        result = start_ap();
 #ifdef RTSP_SUPPORT_ENABLE
-    if(result == 0){
-        start_rtsp_live_stream();
-    }else{
-        result = RETURN_CODE_DEVICE_BUSY;
-        log_error_app("result(%d) error! rtsp no run\n",result);
-    }
+        if(result == 0){
+            start_rtsp_live_stream();
+        }else{
+            result = RETURN_CODE_DEVICE_BUSY;
+            log_error_app("result(%d) error! rtsp no run\n",result);
+        }
 #endif
+    }
 
     memset(glass_info_param, 0, sizeof(glass_info_param));
     glass_info_param_len = ai_glass_info_pack_data(result, glass_info_param, NULL, 0);
