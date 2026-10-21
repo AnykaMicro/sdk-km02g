@@ -1350,7 +1350,11 @@ void handle_wifi_p2p_mode(const quick_glass_info_t *glass_info)
 			log_info_app("p2p old cmd state=%d, p2p_name=%s\n", sub_cmd, p2p_name);
 		}else {//New protocol
 			ak_glass_p2p_config_t *p2p_param = (ak_glass_p2p_config_t *)glass_info->parameter;
-			strncpy(p2p_name, p2p_param->p2p_dev_name, glass_info->param_len-1);// Remove one byte state data
+			size_t name_len = glass_info->param_len - 1; // one byte of state precedes the name
+			if (name_len > sizeof(p2p_name) - 1)
+				name_len = sizeof(p2p_name) - 1;
+			strncpy(p2p_name, p2p_param->p2p_dev_name, name_len);
+			p2p_name[name_len] = '\0';
 			sub_cmd = p2p_param->state;
 			log_info_app("p2p new cmd state=%d, p2p_name=%s\n", sub_cmd, p2p_name);
 		}
@@ -1372,7 +1376,8 @@ void handle_wifi_p2p_mode(const quick_glass_info_t *glass_info)
             printf("mode rtsp\n");
             set_work_mode(WORK_MODE_RTSP);
             result = start_p2p(p2p_name);
-            start_rtsp_live_stream();
+            if (result == 0)
+                start_rtsp_live_stream();
             memset(glass_info_param, 0, sizeof(glass_info_param));
             glass_info_param_len = ai_glass_info_pack_data(result, glass_info_param, NULL, 0);
             set_glass_info_v4(glass_info->cmd, (char *)glass_info_param, glass_info_param_len);

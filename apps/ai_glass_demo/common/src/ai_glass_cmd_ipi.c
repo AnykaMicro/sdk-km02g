@@ -249,7 +249,11 @@ UPDATE_GLASS_INFO:
                 wait_for_sdnand(BT_CMD_PHOTO);
                 glass_cur_cmd = IPI_FASTSYS_FILE_OPEN;
                 memset(file_name, 0, sizeof(file_name));
-                memcpy(file_name, ((char *)glass_info.parameter + 4), glass_info.param_len - 4);
+                // 4 bytes of open flags precede the name; param_len < 4 leaves the name empty (rejected below)
+                size_t name_len = glass_info.param_len < 4 ? 0 : glass_info.param_len - 4;
+                if (name_len > sizeof(file_name) - 1)
+                    name_len = sizeof(file_name) - 1;
+                memcpy(file_name, ((char *)glass_info.parameter + 4), name_len);
                 int open_flag = *((int *)glass_info.parameter);
                 // printf("data:0x%02x %02x %02x %02x %02x %02x %02x %02x\n",
                 //*((char *)glass_info.parameter+0), *((char *)glass_info.parameter+1), *((char *)glass_info.parameter+2), *((char *)glass_info.parameter+3),

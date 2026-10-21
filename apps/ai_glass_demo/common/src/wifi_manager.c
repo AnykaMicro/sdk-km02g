@@ -249,10 +249,27 @@ int set_wifi_ap_conf(char *ssid, char *wpa_passphrase)
     return ret;
 }
 
+/* The P2P device name becomes argv[1] of an out-of-tree shell script: allow only [A-Za-z0-9_-], 1-32 chars */
+static int p2p_name_ok(const char *s)
+{
+    size_t n = strlen(s);
+    if (n == 0 || n > 32)
+        return 0;
+    for (; *s; s++)
+        if (!((*s >= 'A' && *s <= 'Z') || (*s >= 'a' && *s <= 'z') || (*s >= '0' && *s <= '9') || *s == '_' || *s == '-'))
+            return 0;
+    return 1;
+}
+
 int start_p2p(char *p2p_name)
 {
     int result = 0;
 
+    if (!p2p_name || !p2p_name_ok(p2p_name))
+    {
+        log_error_app("Error: invalid P2P device name (allowed: [A-Za-z0-9_-], 1-32 characters)\n");
+        return -1;
+    }
     if (wifi_working_mode != -1)
     {
         log_error_app("wifi need stop first!\n");
