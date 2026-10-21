@@ -644,7 +644,12 @@ int wifi_get_status_ssid_password(int *status_out, char *ssid_out, char *passwor
             FILE *config_fp = fopen(config_file, "r");
             if (config_fp) {
                 while (fgets(line, sizeof(line), config_fp)) {
-                    char *pass_start = strstr(line, password_pattern);
+                    // Match the key at line start only: a '#' comment may mention it
+                    char *pass_start = line;
+                    while (*pass_start == ' ' || *pass_start == '\t')
+                        pass_start++;
+                    if (*pass_start == '#' || strncmp(pass_start, password_pattern, strlen(password_pattern)) != 0)
+                        pass_start = NULL;
                     if (pass_start) {
                         pass_start += strlen(password_pattern);
 
