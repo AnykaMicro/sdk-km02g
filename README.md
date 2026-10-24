@@ -5,7 +5,7 @@ English | [中文](#中文)
 Software development kit for the **AnykaVision AI** camera-glasses reference design:
 
 - **KM02G**: 64-bit dual-core RISC-V image SoC (ISP, NPU, video encoder, stabilisation). It runs Linux and the demo application in this repository.
-- **AK1090**: Bluetooth SoC that links the glasses to the phone app. Its firmware is not in this repository.
+- **AK1090**: Bluetooth audio SoC that links the glasses to the phone app. Its firmware is not in this repository.
 
 | Path | Contents |
 |---|---|
@@ -119,7 +119,7 @@ Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). This covers the
 **AnykaVision AI** AI 拍摄眼镜参考设计的软件开发包（SDK）：
 
 - **KM02G**：64 位双核 RISC-V 图像 SoC（ISP、NPU、视频编码、防抖），运行 Linux 和本仓库的示例应用。
-- **AK1090**：蓝牙 SoC，负责眼镜与手机 App 的连接。其固件不在本仓库中。
+- **AK1090**：蓝牙音频 SoC，负责眼镜与手机 App 的连接。其固件不在本仓库中。
 
 | 路径 | 内容 |
 |---|---|
