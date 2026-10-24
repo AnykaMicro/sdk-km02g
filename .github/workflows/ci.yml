@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Host-side unit tests (tests/Makefile needs the Linux UAPI headers).
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y linux-libc-dev
+      - run: make test
+
+  # Syntax-check every script with bash, and the #!/bin/sh ones with dash too.
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: |
+          for f in $(git ls-files '*.sh'); do
+            echo "$f"
+            bash -n "$f"
+            if head -n1 "$f" | grep -q '^#!/bin/sh'; then dash -n "$f"; fi
+          done
+
+  # The build uses -fno-builtin, which hides gcc's printf format checking.
+  # Re-check the formats with clang against the toolchain's musl headers.
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Fetch the sysroot headers from the v1.00 Release
+        id: sysroot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          asset=riscv64-anyka-linux-musl.tar.gz
+          if ! out=$(gh release view v1.00 --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' 2>&1); then
+            case "$out" in
+              *"release not found"*)
+                echo "::notice::Skipping the format check: the v1.00 Release is not published yet"
+                exit 0 ;;
+              *) echo "$out" >&2; exit 1 ;;
+            esac
+          fi
+          echo "$out" | grep -qx "$asset" || { echo "::error::v1.00 Release has no $asset" >&2; exit 1; }
+          gh release download v1.00 --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          sha=$(sed -n 's/^SHA256="\(.*\)"/\1/p' scripts/get_toolchain.sh)
+          echo "$sha  $RUNNER_TEMP/$asset" | sha256sum -c -
+          inc=riscv64-anyka-linux-musl/riscv64-anyka-linux-musl/sysroot/usr/include
+          tar --no-same-owner -xzf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP" "$inc"
+          echo "dir=$RUNNER_TEMP/$inc" >> "$GITHUB_OUTPUT"
+      - name: Check printf formats
+        if: steps.sysroot.outputs.dir
+        env:
+          SYSROOT_INC: ${{ steps.sysroot.outputs.dir }}
+        working-directory: apps/ai_glass_demo
+        run: |
+          sudo apt-get update && sudo apt-get install -y clang
+          clang --target=riscv64-unknown-linux-musl -fsyntax-only -nostdlibinc -isystem "$SYSROOT_INC" \
+            -std=c99 -D_GNU_SOURCE -DEIS_ENABLED -DRTSP_SUPPORT_ENABLE -DRTSP_START_FIRST_ENABLE \
+            -DRECORD_SUPPORT_ENABLE -DLED_ENABLE \
+            -I. -I../../platform/include -Icommon/inc -IlibLiveStreamCode -IlibTakePhotoCode \
+            -IlibVideoRecordCode -IlibVideoEis \
+            -Wno-everything -Wformat -Werror \
+            ./*.c common/src/*.c libLiveStreamCode/*.c libTakePhotoCode/*.c libVideoRecordCode/*.c libVideoEis/*.c
