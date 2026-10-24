@@ -24,6 +24,15 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y linux-libc-dev
       - run: make test
 
+  # The automatic part of REVIEW.md: secrets, clean-room, names, scope, hygiene.
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: ./scripts/review.sh source
+
   # Syntax-check every script with bash, and the #!/bin/sh ones with dash too.
   shell:
     runs-on: ubuntu-latest
