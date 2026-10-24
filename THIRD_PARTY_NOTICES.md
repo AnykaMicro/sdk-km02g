@@ -103,7 +103,7 @@ THE SOFTWARE.
 
 ### Cross toolchain: `riscv64-anyka-linux-musl.tar.gz`
 
-A Buildroot-generated SDK for Linux x86-64 hosts. Main components:
+A Buildroot-generated SDK for Linux x86-64 hosts, repacked for publishing: every entry is owned by root and the build machine's paths are replaced. `scripts/get_toolchain.sh` relocates it to the install directory. Main components:
 
 | Component | Licence |
 |---|---|
@@ -118,21 +118,21 @@ The complete source code and licence texts for this archive must be published ne
 
 > **TODO (Anyka):** publish the `legal-info` output (sources, licence texts and manifest) as a Release asset before, or together with, the toolchain.
 
-### Base ramdisk: `ramfs.img`
+### Ramdisk: `ramfs.img`
 
-The ramdisk that `rootfs/create_ramfs.sh` unpacks and repacks with your build of `ai_glass_demo`. The Release asset must itself be built from this repository (`make`, then `tools/ota/ramfs.img`). Never publish the `rootfs/ramfs.img` of the V1.00 bundle: its prebuilt `ai_glass_demo` predates the cleaned sources and the rewritten USB webcam module.
+`make` builds it from this repository only (`rootfs/build_userland.sh` and `rootfs/create_ramfs.sh`); the Release asset is that output at the release commit. Never publish the `rootfs/ramfs.img` of the V1.00 bundle: its prebuilt `ai_glass_demo` predates the cleaned sources and the rewritten USB webcam module.
 
 Every executable in the image is statically linked:
 
 | Component | Licence |
 |---|---|
-| BusyBox 1.35.0 (`bin/busybox` and its links) | GPL-2.0-only |
-| `bin/mtd_debug` from mtd-utils | GPL-2.0-or-later |
-| `etc/format_tool`: SD/NAND formatter, an executable that runs an embedded shell script | Anyka. **TODO (Anyka):** confirm its origin |
-| Init and helper scripts: `etc/init.d/rcS`, `etc/init.d/rc.local`, `etc/profile`, `sbin/*.sh` | Apache-2.0 (Anyka) |
+| BusyBox 1.35.0 (`bin/busybox` and its links), built from source with `rootfs/busybox-1.35.0.config` | GPL-2.0-only |
+| `bin/mtd_debug` from mtd-utils 2.3.1, built from source | GPL-2.0-or-later |
+| `etc/format_tool`: SD/NAND formatter, an executable that runs an embedded shell script. Kept byte for byte from the V1.00 image; its source is not in this repository | Anyka. **TODO (Anyka):** confirm its origin and licence |
+| Init and OTA scripts and the `/etc` files, from `rootfs/skeleton/` | Apache-2.0 (Anyka) |
 | `etc/ai_glass_demo`, built from this repository | Apache-2.0 (Anyka) |
-| musl libc 1.2.3, linked into `ai_glass_demo`, `format_tool` and `mtd_debug` | MIT (notice below) |
-| GCC runtime (libgcc, libstdc++), linked into `ai_glass_demo` | GPL-3.0-or-later WITH GCC-exception-3.1 |
+| musl libc 1.2.3, linked into every executable in the image | MIT (notice below) |
+| GCC runtime (libgcc; libstdc++ only in `ai_glass_demo`) | GPL-3.0-or-later WITH GCC-exception-3.1 |
 
 musl libc (from its `COPYRIGHT` file, release 1.2.3; the full file, which also lists contributors and files under other permissive licences, belongs in the source bundle):
 
@@ -159,9 +159,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-The BusyBox 1.35.0 source, the exact BusyBox `.config` and the mtd-utils source must be published with the `ramfs.img` Release asset. Do not publish the asset without them.
-
-> **TODO (Anyka):** add those sources and the `.config` to the Release.
+The v1.00 Release carries the corresponding sources next to `ramfs.img`: `busybox-1.35.0.tar.bz2` with its `.sig` from the BusyBox maintainer, the BusyBox config `busybox-1.35.0.config` (also in this repository), and `mtd-utils-2.3.1.tar.bz2` with its `.asc`. `rootfs/build_userland.sh` downloads the same archives from busybox.net and infraroot.at and checks their SHA-256. Do not publish `ramfs.img` without them.
 
 ## 3. Host tools you install yourself
 
@@ -172,4 +170,5 @@ The build calls these from your `PATH`; the SDK does not ship them: `lz4` (BSD-2
 - Prebuilt host binaries `rootfs/lz4`, `rootfs/mkfs.jffs2` and `tools/uboot_tools/mkimage` (GPL). Install the distribution packages instead (see README).
 - `platform/include_3rd/iconv.h` (GNU libiconv, LGPL-2.0-or-later). Nothing used it.
 - `list.h` (both copies) and the USB webcam code `libTakePhotoCode/uvc.c` and `uvc.h`. They are replaced by `ak_list.h` and `libTakePhotoCode/usb_webcam.c`/`.h`, written from scratch for this repository.
+- The prebuilt base ramdisk `rootfs/ramfs.img`. The ramdisk is now built from source (`rootfs/skeleton/`, BusyBox and mtd-utils), so no base image is needed.
 - Build outputs (`tools/ota/update.bin`, `ramfs.img`, `usr.jffs2`) and the 116 MB toolchain archive, which are now built locally or published as Release assets.
