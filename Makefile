@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (C) Guangzhou Anyka Microelectronics Co., Ltd.
-# Makefile for AnyCloud39AV200 SDK
+# Makefile for the AnykaVision AI SDK (Anyka-Micro/sdk-km02g)
 
 # Include configuration
 include config.mk
 
 # Default target
-.PHONY: all app install clean test
+.PHONY: all app install clean distclean test
 # all = clean, app, install in that order; never run them in parallel
 .NOTPARALLEL:
 
@@ -48,6 +48,11 @@ clean:
 	@rm -rf tools/ota/usr.jffs2 tools/ota/part1.bin
 	@rm -f tests/list_test tests/uvc_test
 	@echo "Clean complete."
+
+# Also drop the cached BusyBox/mtd-utils build (rootfs/build); the downloaded
+# source archives in tools/ stay
+distclean: clean
+	@rm -rf rootfs/build
 
 # Host-side unit tests (needs gcc and linux-libc-dev on the build host)
 test:

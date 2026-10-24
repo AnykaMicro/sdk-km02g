@@ -1,0 +1,80 @@
+#!/bin/sh
+
+function get_partition_dev()
+{
+	mtdblockid=`cat /proc/mtd | grep -E "\"$1\"$" | grep -E -o "mtd[0-9]+" | grep -E -o "[0-9]+"`
+	if [ "$mtdblockid" != "" ];then
+		echo "/dev/mtdblock$mtdblockid"
+	else
+		echo ""
+	fi
+}
+
+# mount usr file-system.
+#/bin/mount -t squashfs /dev/mtdblock7 /usr
+partition_app=`get_partition_dev APP`
+if [ "$partition_app" != "" ];then
+	echo "/bin/mount -t squashfs $partition_app /usr"
+	/bin/mount -t squashfs $partition_app /usr
+fi
+
+# 设备路径
+DEVICE="/dev/mmcblk1p2"
+# 挂载点
+MOUNT_POINT="/mnt"
+
+TIMEOUT=2
+START_TIME=$(date +%s)
+
+echo "Detecting device: $DEVICE (Timeout: ${TIMEOUT} seconds)"
+
+# 持续检测设备
+while true; do
+    CURRENT_TIME=$(date +%s)
+    ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+
+    # Timeout check - 放在循环开始处
+    if [ $ELAPSED_TIME -ge $TIMEOUT ]; then
+        echo "Detection timeout! Device $DEVICE not found within ${TIMEOUT} seconds"
+        exit 1
+    fi
+
+    # 检查设备是否存在且是块设备
+    if [ -b "$DEVICE" ]; then
+        echo "detect: $DEVICE"
+
+        # 尝试挂载设备
+        if mount "$DEVICE" "$MOUNT_POINT" 2>/dev/null; then
+            echo "succeed mount $DEVICE to $MOUNT_POINT"
+            mv /dev/mmcblk1p1 /dev/sysblk1p1
+            mv /dev/mmcblk1 /dev/sysblk1
+            break
+        else
+            echo "mount failed! retry in 0.02s (Elapsed: ${ELAPSED_TIME}s)"
+        fi
+    fi
+
+    # 短暂等待后继续检测
+    sleep 0.02
+done
+
+
+
+# mount jffs2 file-system.
+#/bin/mount -t jffs2 /dev/mtdblock6 /etc/config
+# partition_config=`get_partition_dev CONFIG`
+# if [ "$partition_config" != "" ];then
+# 	echo "/bin/mount -t jffs2 $partition_config /etc/config"
+# 	/bin/mount -t jffs2 $partition_config /etc/config
+# fi
+
+# echo "starting mdev..."
+# /bin/echo /sbin/mdev > /proc/sys/kernel/hotplug
+# mdev -s
+
+# note: can't recommend running other app before `mount` command.
+
+ifconfig lo 127.0.0.1
+
+#start system service
+/usr/sbin/main.sh &

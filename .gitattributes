@@ -7,3 +7,6 @@
 *.bin binary
 *.png binary
 *.jpg binary
+# Device files from V1.00, kept byte for byte: CRLF config files and a prebuilt tool
+rootfs/skeleton/etc/ps_ir_*.conf -text whitespace=cr-at-eol
+rootfs/skeleton/etc/format_tool binary

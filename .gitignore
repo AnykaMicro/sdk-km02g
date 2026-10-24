@@ -3,6 +3,7 @@
 apps/ai_glass_demo/ai_glass_demo
 rootfs/ai_glass_demo
 rootfs/ramfs/
+rootfs/build/
 rootfs/ramfs.cpio
 rootfs/ramfs.cpio.lz4
 tools/ota/update.bin
@@ -17,7 +18,7 @@ tests/uvc_test
 # Your own settings and secrets (root password hash, debug AP passphrase): never commit them
 rootfs/config.local/
 
-# GitHub Release assets: download them, never commit them
-rootfs/ramfs.img
-tools/riscv64-anyka-linux-musl.tar.gz
-tools/riscv64-anyka-linux-musl.tar.gz.part
+# Downloaded archives (toolchain, BusyBox and mtd-utils sources): never commit them
+tools/*.tar.gz
+tools/*.tar.bz2
+tools/*.part
