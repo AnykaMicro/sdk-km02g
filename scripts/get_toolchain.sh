@@ -15,7 +15,7 @@ set -e
 # The v1.00 Release stays a draft until the repository is public. Until then,
 # download the archive with your GitHub account and put it in tools/ first.
 URL="${TOOLCHAIN_URL:-https://github.com/Anyka-Micro/sdk-km02g/releases/download/v1.00/riscv64-anyka-linux-musl.tar.gz}"
-SHA256="631f7c929fef2455eb01f1333b5fee83cfaff162c93c44a5a31c604e1997f65d"
+SHA256="13e7fbc62d87707572e252288f1c72623cb3595ae38bddc53bec11bb2a2da279"
 DEST="${1:-/opt}"
 FILE="$(cd "$(dirname "$0")/.." && pwd)/tools/riscv64-anyka-linux-musl.tar.gz"
 

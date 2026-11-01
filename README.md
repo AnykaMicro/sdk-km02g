@@ -75,7 +75,7 @@ Large or GPL-licensed binaries are published on the GitHub Releases page, not in
 
 | Asset | Contents |
 |---|---|
-| `riscv64-anyka-linux-musl.tar.gz` | GCC 12.2 / musl cross toolchain for x86-64 Linux hosts, fetched by `scripts/get_toolchain.sh`. Repacked for publishing: root-owned, with no build-machine paths. SHA-256 `631f7c929fef2455eb01f1333b5fee83cfaff162c93c44a5a31c604e1997f65d` |
+| `riscv64-anyka-linux-musl.tar.gz` | GCC 12.2 / musl cross toolchain for x86-64 Linux hosts, fetched by `scripts/get_toolchain.sh`. Repacked for publishing: root-owned, with no build-machine paths. SHA-256 `13e7fbc62d87707572e252288f1c72623cb3595ae38bddc53bec11bb2a2da279` |
 | `ramfs.img` | The ramdisk that `make` builds from this repository at the release commit: BusyBox 1.35.0, `mtd_debug`, the init and OTA scripts in `rootfs/skeleton/`, `etc/format_tool` (an Anyka tool kept unchanged from V1.00) and `ai_glass_demo`. You don't need it to build; it is there for flashing and comparison. Never the image of the original V1.00 bundle |
 | Source archives | `busybox-1.35.0.tar.bz2` and `mtd-utils-2.3.1.tar.bz2` with their upstream signatures, and the BusyBox config used. The toolchain's own sources are still to be added |
 
@@ -189,7 +189,7 @@ sudo apt install make gcc bzip2 file lz4 mtd-utils u-boot-tools cpio xxd wget
 
 | 附件 | 内容 |
 |---|---|
-| `riscv64-anyka-linux-musl.tar.gz` | 适用于 x86-64 Linux 主机的 GCC 12.2 / musl 交叉工具链，由 `scripts/get_toolchain.sh` 下载。已为发布重新打包：文件归 root 所有，不含编译机器的路径。SHA-256 `631f7c929fef2455eb01f1333b5fee83cfaff162c93c44a5a31c604e1997f65d` |
+| `riscv64-anyka-linux-musl.tar.gz` | 适用于 x86-64 Linux 主机的 GCC 12.2 / musl 交叉工具链，由 `scripts/get_toolchain.sh` 下载。已为发布重新打包：文件归 root 所有，不含编译机器的路径。SHA-256 `13e7fbc62d87707572e252288f1c72623cb3595ae38bddc53bec11bb2a2da279` |
 | `ramfs.img` | `make` 在发布对应的 commit 上用本仓库生成的 ramdisk：BusyBox 1.35.0、`mtd_debug`、`rootfs/skeleton/` 中的启动和 OTA 脚本、`etc/format_tool`（保持 V1.00 原样的安凯工具）以及 `ai_glass_demo`。编译时不需要它，它用于烧写和对照。绝不能使用原 V1.00 包中的镜像 |
 | 源码压缩包 | `busybox-1.35.0.tar.bz2` 和 `mtd-utils-2.3.1.tar.bz2`（附上游签名），以及所用的 BusyBox 配置。工具链本身的源码尚待补充 |
 
