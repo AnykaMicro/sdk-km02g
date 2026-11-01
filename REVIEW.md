@@ -81,7 +81,7 @@ It prints `PASS`, `FAIL` or `SKIP` per ID and exits 1 if anything failed. Questi
 | M7 | Does `THIRD_PARTY_NOTICES.md` list every component of every shipped binary and Release file, with the licence text where the licence requires it? | manual |
 | M8 | Is every GPL/LGPL binary on the Release accompanied by its source? (toolchain: Buildroot `legal-info`; ramdisk: BusyBox and mtd-utils archives plus the BusyBox config) | manual |
 | M9 | Do the Release files match the checksums in this repository? | manual |
-| M10 | Was the Release toolchain made from the V1.00 archive by `scripts/repack_toolchain.py`, and does a second run give the same file? Its self-check fails on any build-machine path left | manual |
+| M10 | Was the Release toolchain made from the V1.00 archive by `scripts/repack_toolchain.py`, and does a second run give the same file? Its self-check fails if the build path, the user name or any other fragment of the build path is left in any member, name or link, or an 8-byte-aligned movabs chunk of the SDK path is left in a binary; it does not look inside compressed members or at other immediate forms, so an independent leak hunt is still needed. With stock zlib 1.2.12 or 1.3.1 the output is `13e7fbc6…` (tar stream `f422c710…`) | manual |
 
 ## Needs a board
 

@@ -4,6 +4,8 @@
 # Repack Anyka's V1.00 Buildroot toolchain for the Release: root-owned, sorted,
 # one mtime, and no build-machine path left in any file, link or instruction.
 # The tar stream is the same on every run; the gzip bytes also depend on zlib.
+# Checked: stock zlib 1.2.12 and 1.3.1 give SHA-256 13e7fbc62d87707572e252288f1c72623cb3595ae38bddc53bec11bb2a2da279
+# (tar stream f422c710730c1a598233edd1109cc4e3a5995d320570b49cb74da08f1e4b705f); zlib-ng may differ.
 #
 # Usage: python3 -I scripts/repack_toolchain.py <V1.00 riscv64-anyka-linux-musl.tar.gz> <out.tar.gz>
 # It works in memory: nothing from the archive is extracted to disk or run.
